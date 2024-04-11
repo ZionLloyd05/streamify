@@ -13,7 +13,7 @@ type Participant struct {
 	Host bool
 	ID   string
 	Conn *websocket.Conn
-	Mutex sync.Mutex
+	Mutex *sync.Mutex
 }
 
 type RoomMap struct {
@@ -59,7 +59,7 @@ func (r *RoomMap) InsertIntoRoom(roomID string, host bool, conn *websocket.Conn)
 	defer r.Mutex.Unlock()
 
 	clientID := uuid.New().String()
-	incomingParticipant := Participant{host, clientID, conn, sync.Mutex{}}
+	incomingParticipant := Participant{host, clientID, conn, &sync.Mutex{}}
 
 	r.Map[roomID] = append(r.Map[roomID], incomingParticipant)
 }

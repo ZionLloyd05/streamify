@@ -2,6 +2,7 @@ package video
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -23,18 +24,20 @@ type BroadcastMessage struct {
 var broadcast = make(chan BroadcastMessage) 
 
 func broadcaster() {
+	// var mu sync.Mutex
 	for {
 		msg := <- broadcast
 		for _, client := range AllRooms.Map[msg.RoomID] {
 			if(client.Conn != msg.Client) {
 				client.Mutex.Lock()
-				defer client.Mutex.Unlock()
 				
 				err := client.Conn.WriteJSON(msg.Message)
 				if err != nil {
-					log.Fatal(err)
+					// log.Fatal(err)
+					fmt.Printf("connection closed for client with id %s. error: %s", client.ID, err.Error())
 					client.Conn.Close()
 				}
+				client.Mutex.Unlock()
 			}
 		}
 	}

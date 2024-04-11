@@ -11,6 +11,7 @@ import (
 func main() {
 	setupApp()
 
+	log.Println("listning and serving")
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
 }
 
