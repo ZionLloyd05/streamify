@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"streamify/Internals/chat"
 	"streamify/Internals/video"
 )
@@ -12,7 +13,13 @@ func main() {
 	setupApp()
 
 	log.Println("listning and serving")
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
+	var port = os.Getenv("PORT");
+
+	if port == "" {
+		port = "3000"
+	}
+
+	log.Fatal(http.ListenAndServe(":" + port, nil))
 }
 
 func setupApp(){
