@@ -36,6 +36,7 @@ func broadcaster() {
 					// log.Fatal(err)
 					fmt.Printf("connection closed for client with id %s. error: %s", client.ID, err.Error())
 					client.Conn.Close()
+					break
 				}
 				client.Mutex.Unlock()
 			}
@@ -70,7 +71,7 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		log.Fatal("Unable to upgrade http to websocket", err)
+		log.Println("Unable to upgrade http to websocket", err)
 	}
 
 	AllRooms.InsertIntoRoom(roomID, false, ws)
@@ -82,7 +83,8 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 		err := ws.ReadJSON(&msg.Message)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			break
 		}
 
 		msg.Client = ws

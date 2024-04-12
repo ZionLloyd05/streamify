@@ -40,18 +40,19 @@ func (client *Client) writeMessage() {
 				if err != nil {
 					log.Println("connection closed: ", err)
 				}
-				return
+				break
 			}
 
 			data, err := json.Marshal(message)
 
 			if err != nil {
 				log.Println(err)
-				return
+				break
 			}
 
 			if err := client.connection.WriteMessage(websocket.TextMessage, data); err != nil {
 				log.Printf("failed to send message: %v", err)
+				break
 			}
 
 			log.Println("message dispatched")
@@ -60,6 +61,7 @@ func (client *Client) writeMessage() {
 }
 
 func (client *Client) readMessages(){
+	isClientLeft := false;
 	//clean up broken connections
 	defer func(){
 		client.manager.removeClient(client)
@@ -74,20 +76,26 @@ func (client *Client) readMessages(){
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error reading messages %v", err)
 			}
+			isClientLeft = true;
 			break
 		}
 
-		var request Event
+		if(!isClientLeft){
+			var request Event
 
-		if err := json.Unmarshal(payload, &request); err != nil {
-			log.Printf("error marshalling event :%v", err)
+			if err := json.Unmarshal(payload, &request); err != nil {
+				log.Printf("error marshalling event :%v", err)
+				break
+			}
+	
+			//route event to the right handler for execution 
+			routeError := client.manager.routeEvent(request, client)
+	
+			if routeError != nil {
+				log.Printf("error handling message:%v", err)
+				break
+			}
 		}
-
-		//route event to the right handler for execution 
-		routeError := client.manager.routeEvent(request, client)
-
-		if routeError != nil {
-			log.Printf("error handling message:%v", err)
-		}
+		
 	}
 }
